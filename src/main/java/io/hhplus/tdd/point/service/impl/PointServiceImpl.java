@@ -44,6 +44,11 @@ public class PointServiceImpl implements PointService {
         PointValidator.validate(amount);
 
         long totalPoint = userPointTable.selectById(id).point() + amount;
+
+        if (totalPoint > MAX_POINT) {
+            throw new CustomException(CommonErrorCode.BAD_REQUEST, "Maximum point exceeded");
+        }
+
         UserPoint userpoint = userPointTable.insertOrUpdate(id, totalPoint);
         pointHistoryTable.insert(id, amount, TransactionType.CHARGE, currentTimeMillis());
 
