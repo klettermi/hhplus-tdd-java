@@ -1,5 +1,7 @@
 package io.hhplus.tdd.point.service.impl;
 
+import io.hhplus.tdd.common.code.CommonErrorCode;
+import io.hhplus.tdd.common.exception.CustomException;
 import io.hhplus.tdd.database.PointHistoryTable;
 import io.hhplus.tdd.database.UserPointTable;
 import io.hhplus.tdd.point.entity.PointHistory;
@@ -46,5 +48,21 @@ public class PointServiceImpl implements PointService {
         pointHistoryTable.insert(id, amount, TransactionType.CHARGE, currentTimeMillis());
 
         return userpoint;
+    }
+
+    @Override
+    public UserPoint usePoint(long id, long amount) {
+        UserValidator.validate(id);
+        PointValidator.validate(amount);
+
+        long balance = userPointTable.selectById(id).point() - amount;
+        if (balance < 0) {
+            throw new CustomException(CommonErrorCode.BAD_REQUEST, "The point balance is insufficient");
+        }
+
+        UserPoint userPoint = userPointTable.insertOrUpdate(id, balance);
+        pointHistoryTable.insert(id, amount, TransactionType.USE, currentTimeMillis());
+
+        return userPoint;
     }
 }
