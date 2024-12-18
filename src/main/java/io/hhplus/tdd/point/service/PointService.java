@@ -11,4 +11,6 @@ public interface PointService {
     List<PointHistory> getPointHistory(long id);
 
     UserPoint chargePoint(long id, long amount);
+
+    UserPoint usePoint(long id, long amount);
 }
