@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static java.lang.System.currentTimeMillis;
 
@@ -26,16 +27,29 @@ public class PointServiceImpl implements PointService {
     private final UserPointTable userPointTable;
     private final PointHistoryTable pointHistoryTable;
 
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+
     @Override
     public UserPoint getUserPoint(long id) {
-        UserValidator.validate(id);
-        return userPointTable.selectById(id);
+        lock.readLock().lock();
+        try {
+            UserValidator.validate(id);
+            return userPointTable.selectById(id);
+        } finally {
+            lock.readLock().unlock();
+        }
+
     }
 
     @Override
     public List<PointHistory> getPointHistory(long id) {
-        UserValidator.validate(id);
-        return pointHistoryTable.selectAllByUserId(id);
+        lock.readLock().lock();
+        try {
+            UserValidator.validate(id);
+            return pointHistoryTable.selectAllByUserId(id);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
@@ -49,10 +63,15 @@ public class PointServiceImpl implements PointService {
             throw new CustomException(CommonErrorCode.BAD_REQUEST, "Maximum point exceeded");
         }
 
-        UserPoint userpoint = userPointTable.insertOrUpdate(id, totalPoint);
-        pointHistoryTable.insert(id, amount, TransactionType.CHARGE, currentTimeMillis());
+        lock.writeLock().lock();
+        try {
+            UserPoint userpoint = userPointTable.insertOrUpdate(id, totalPoint);
+            pointHistoryTable.insert(id, amount, TransactionType.CHARGE, currentTimeMillis());
 
-        return userpoint;
+            return userpoint;
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     @Override
@@ -65,9 +84,14 @@ public class PointServiceImpl implements PointService {
             throw new CustomException(CommonErrorCode.BAD_REQUEST, "The point balance is insufficient");
         }
 
-        UserPoint userPoint = userPointTable.insertOrUpdate(id, balance);
-        pointHistoryTable.insert(id, amount, TransactionType.USE, currentTimeMillis());
+        lock.writeLock().lock();
+        try {
+            UserPoint userPoint = userPointTable.insertOrUpdate(id, balance);
+            pointHistoryTable.insert(id, amount, TransactionType.USE, currentTimeMillis());
 
-        return userPoint;
+            return userPoint;
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 }
