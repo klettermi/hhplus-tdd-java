@@ -10,8 +10,8 @@ public class PointValidator {
         if (point == null) {
             throw new CustomException(CommonErrorCode.PARAMETER_WRONG, "Point can not be null.");
         }
-        if (point < 0) {
-            throw new CustomException(CommonErrorCode.PARAMETER_WRONG, "Point can not be less than zero.");
+        if (point < 100) {
+            throw new CustomException(CommonErrorCode.PARAMETER_WRONG, "Point can not be less than 100.");
         }
         if (point > MAX_POINT) {
             throw new CustomException(CommonErrorCode.PARAMETER_WRONG, "Point can not be greater than " + MAX_POINT + ".");
