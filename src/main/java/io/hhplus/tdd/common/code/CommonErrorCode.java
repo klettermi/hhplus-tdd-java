@@ -11,14 +11,14 @@ import java.util.stream.Stream;
 
 @Getter
 @RequiredArgsConstructor
-public enum CommonErrorCode implements ErrorCode{
+public enum CommonErrorCode implements ErrorCode {
 
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "400_0", "잘못된 요청입니다."),
     PARAMETER_WRONG(HttpStatus.BAD_REQUEST, "400_1", "잘못된 파라미터입니다.");
 
     private static final Map<String, String> CODE_MAP = Collections.unmodifiableMap(
             Stream.of(values()).collect(Collectors.toMap(CommonErrorCode::getCode, CommonErrorCode::name)));
-    private final HttpStatus httpStatus;
+    private final HttpStatus status;
     private final String code;
     private final String msg;
 
